@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DISG Seat Ballot</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎟️</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#eef1f6; --surface:#ffffff; --surface-2:#f6f8fc; --line:#d9dfeb;
+    --ink:#16233b; --ink-soft:#55637c; --ink-faint:#8894a8;
+    --accent:#a8791f; --accent-ink:#6b4a12; --accent-bg:#fbf1de;
+    --ok:#1f7a4d; --ok-bg:#e6f4ec;
+    --taken:#33455f; --taken-bg:#e7ebf2;
+    --muted:#8a93a6; --muted-bg:#eef0f4;
+    --danger:#a9342b; --danger-bg:#fbeae8;
+    --t-green:#3f9463; --t-yellow:#d1a021; --t-darkyellow:#a3701f; --t-darkgreen:#2c6b47;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1520; --surface:#161f2c; --surface-2:#1b2534; --line:#2b3648;
+      --ink:#e8ecf4; --ink-soft:#aab4c6; --ink-faint:#7c869a;
+      --accent:#d7a53f; --accent-ink:#f4d998; --accent-bg:#2c2413;
+      --ok:#4cbf85; --ok-bg:#12281d;
+      --taken:#c3cee2; --taken-bg:#232f42;
+      --muted:#7c869a; --muted-bg:#1d2532;
+      --danger:#e5766c; --danger-bg:#301917;
+      --t-green:#4cbf85; --t-yellow:#e0b943; --t-darkyellow:#c2903f; --t-darkgreen:#4a9a6c;
+      color-scheme: dark;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg);}
+  body{color:var(--ink); font-family:'IBM Plex Sans',system-ui,sans-serif; padding-inline:16px; padding-block:20px 60px; max-width:1040px; margin-inline:auto;}
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0;}
+  .num, .tabular{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit; cursor:pointer;}
+
+  .ticket{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;}
+  .ticket h1{font-size:clamp(22px,4vw,30px);}
+  .ticket .sub{color:var(--ink-soft); font-size:14px; margin-top:4px;}
+  .ticket .meta{text-align:right; font-size:13px; color:var(--ink-faint);}
+  .ticket .meta b{color:var(--accent-ink); font-size:20px; display:block; font-family:'Fraunces',serif;}
+
+  nav.tabs{display:flex; gap:4px; margin-block:18px; border-bottom:1px solid var(--line); overflow-x:auto;}
+  nav.tabs button{background:none; border:none; padding:10px 14px; font-size:14px; font-weight:600; color:var(--ink-faint); border-bottom:2px solid transparent; white-space:nowrap;}
+  nav.tabs button.active{color:var(--accent-ink); border-color:var(--accent);}
+
+  section{display:none;}
+  section.active{display:block;}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-block:14px;}
+  .card h2{font-size:18px; margin-bottom:2px;}
+  .card .hint{color:var(--ink-soft); font-size:13px; margin-bottom:12px;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .grow{flex:1; min-width:180px;}
+
+  .turn-banner{display:flex; align-items:center; gap:14px; background:var(--accent-bg); border:1px solid var(--accent); border-radius:12px; padding:14px 18px; flex-wrap:wrap;}
+  .turn-banner .badge{font-family:'Fraunces',serif; font-weight:700; font-size:26px; color:var(--accent-ink); background:var(--surface); border:1px solid var(--accent); border-radius:50%; width:52px; height:52px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .turn-banner .who{font-weight:600; font-size:16px;}
+  .turn-banner .sub{color:var(--ink-soft); font-size:13px;}
+  .upnext{color:var(--ink-soft); font-size:13px; margin-top:8px;}
+
+  select,input[type=text],textarea{font-family:inherit; font-size:14px; padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--ink); max-width:100%;}
+  textarea{width:100%; min-height:90px; resize:vertical;}
+  label{font-size:13px; color:var(--ink-soft); font-weight:600; display:block; margin-bottom:4px;}
+  .field{margin-bottom:10px;}
+
+  .btn{border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600; border:1px solid var(--line); background:var(--surface-2); color:var(--ink);}
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#241a06;}
+  .btn.ghost{background:transparent;}
+  .btn.danger{background:var(--danger-bg); border-color:var(--danger); color:var(--danger);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn.small{padding:6px 10px; font-size:12.5px;}
+
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-soft); margin-block:10px 4px;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:11px; height:11px; border-radius:3px; display:inline-block;}
+
+  .seatgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:8px; margin-top:12px;}
+  .seat{position:relative; border-radius:9px; border:1.5px solid var(--line); background:var(--surface-2); padding:8px 6px 7px; font-size:11.5px; text-align:center; min-height:64px; display:flex; flex-direction:column; justify-content:center; gap:3px;}
+  .seat .no{font-family:'Fraunces',serif; font-weight:600; font-size:14px;}
+  .seat .stripe{position:absolute; top:0; left:0; right:0; height:4px; border-radius:9px 9px 0 0;}
+  .seat.t-green .stripe{background:var(--t-green);}
+  .seat.t-yellow .stripe{background:var(--t-yellow);}
+  .seat.t-darkyellow .stripe{background:var(--t-darkyellow);}
+  .seat.t-darkgreen .stripe{background:var(--t-darkgreen);}
+  .seat.t-unset .stripe{background:repeating-linear-gradient(45deg,var(--line),var(--line) 4px,transparent 4px,transparent 8px);}
+  .seat.available{cursor:pointer;}
+  .seat.available:hover{border-color:var(--ok); box-shadow:0 0 0 2px var(--ok-bg);}
+  .seat.pickable{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg);}
+  .seat.taken{background:var(--taken-bg); border-color:var(--taken);}
+  .seat.taken .name{font-weight:600; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .seat.reserved{background:repeating-linear-gradient(135deg,var(--muted-bg),var(--muted-bg) 6px,var(--bg) 6px,var(--bg) 12px); color:var(--ink-faint); cursor:not-allowed;}
+  .seat .tag{font-size:10px; color:var(--ink-faint);}
+  .seat .confirmbox{position:absolute; inset:0; background:var(--surface); border:2px solid var(--accent); border-radius:9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; z-index:2; padding:4px;}
+  .seat .confirmbox button{font-size:11px; padding:4px 8px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);}
+  th{color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.03em;}
+  tr:last-child td{border-bottom:none;}
+  .pill{display:inline-block; padding:2px 9px; border-radius:99px; font-size:11.5px; font-weight:600;}
+  .pill.waiting{background:var(--muted-bg); color:var(--ink-soft);}
+  .pill.current{background:var(--accent-bg); color:var(--accent-ink); border:1px solid var(--accent);}
+  .pill.picked{background:var(--ok-bg); color:var(--ok);}
+  .pill.skipped{background:var(--danger-bg); color:var(--danger);}
+  .pill.pending{background:var(--accent-bg); color:var(--accent-ink);}
+  .pill.approved{background:var(--ok-bg); color:var(--ok);}
+  .pill.rejected{background:var(--danger-bg); color:var(--danger);}
+  .tablewrap{overflow-x:auto;}
+  .empty{color:var(--ink-faint); font-size:13.5px; padding:14px 4px;}
+
+  .toast{position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:10px 18px; border-radius:99px; font-size:13.5px; box-shadow:0 6px 20px rgba(0,0,0,.25); z-index:50; opacity:0; pointer-events:none; transition:opacity .2s;}
+  .toast.show{opacity:1;}
+
+  .idbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--ink-soft); margin-block:2px 8px;}
+  .setupNotice{background:var(--danger-bg); border:1px solid var(--danger); color:var(--danger); border-radius:12px; padding:14px 18px; font-size:13.5px; margin-block:14px;}
+
+  @media(max-width:480px){
+    .ticket{flex-direction:column; align-items:flex-start;}
+    .ticket .meta{text-align:left;}
+  }
+</style>
+</head>
+<body>
+
+<div id="setupNotice" class="setupNotice" hidden>
+  Firebase isn't configured yet — edit the <code>firebaseConfig</code> object near the top of the script in <code>index.html</code> with your own project's values, then reload. See README.md for step-by-step instructions.
+</div>
+
+<div class="ticket">
+  <div>
+    <h1>DISG Seat Ballot</h1>
+    <div class="sub">Level 22 move &middot; EDB seats 01&ndash;45 &middot; lowest ballot number picks first</div>
+  </div>
+  <div class="meta">Draw status<b id="phaseLabel">Loading…</b></div>
+</div>
+
+<div class="idbar">
+  <span>Viewing as:</span>
+  <select id="identitySelect"><option value="">— choose your name —</option></select>
+  <span id="identityHint"></span>
+</div>
+
+<nav class="tabs">
+  <button data-tab="board" class="active">Ballot Board</button>
+  <button data-tab="trades">Trades</button>
+  <button data-tab="log">Assignment Log</button>
+  <button data-tab="admin" id="adminTabBtn" hidden>Admin</button>
+</nav>
+
+<section id="tab-board" class="active">
+  <div id="turnBannerWrap"></div>
+
+  <div class="card">
+    <h2>Level 22 floor plan</h2>
+    <div class="hint">For spatial orientation only — WKX, ITD, DISG zones, mailroom, pantry, lockers and meeting rooms. Seat numbers shown here are from the reference floor plan and may not line up 1:1 with the 01&ndash;45 ballot numbering; treat the seat map below as the source of truth for the draw.</div>
+    <img src="floorplan.jpg" alt="Level 22 neighbourhood floor plan showing WKX, ITD, DISG and shared facility zones" style="width:100%; border-radius:10px; border:1px solid var(--line); display:block;">
+  </div>
+
+  <div class="card">
+    <h2>Queue</h2>
+    <div class="hint">Ballot order — officers not yet in the draw are shown at the bottom.</div>
+    <div class="tablewrap"><table id="queueTable"><thead><tr><th>#</th><th>Officer</th><th>Status</th><th>Seat</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Seat map — 01 to 45 (EDB)</h2>
+    <div class="hint">Seats 01&ndash;06 are reserved for transitory members and are not balloted. Click an available seat on your turn to claim it.</div>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--t-green)"></i>Green — 1.2m fixed, single monitor</span>
+      <span><i class="swatch" style="background:var(--t-yellow)"></i>Yellow — 1.2m height-adjustable, single monitor</span>
+      <span><i class="swatch" style="background:var(--t-darkyellow)"></i>Dark yellow — 1.4/1.6m height-adjustable, dual monitor</span>
+      <span><i class="swatch" style="background:var(--t-darkgreen)"></i>Dark green — 1.4m fixed, dual monitor</span>
+      <span><i class="swatch" style="background:var(--line)"></i>Unset — type to be confirmed by admin</span>
+    </div>
+    <div class="seatgrid" id="seatGrid"></div>
+  </div>
+</section>
+
+<section id="tab-trades">
+  <div class="card">
+    <h2>Propose a trade</h2>
+    <div class="hint">Once seats are assigned, officers may barter among themselves. Every trade is logged here and only takes effect once approved by the workplace representative, so it stays accurate.</div>
+    <div class="row">
+      <div class="field grow"><label>Your seat</label><select id="tradeFromSeat"></select></div>
+      <div class="field grow"><label>Trade with</label><select id="tradeToSeat"></select></div>
+    </div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="tradeNote" placeholder="e.g. swapping to be closer to the team wall"></div>
+    <button class="btn primary" id="submitTrade">Submit trade request</button>
+    <div id="tradeMsg" class="hint"></div>
+  </div>
+  <div class="card">
+    <h2>Trade requests</h2>
+    <div class="tablewrap"><table id="tradesTable"><thead><tr><th>Requested</th><th>From</th><th>To</th><th>Note</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    <div class="empty" id="tradesEmpty" hidden>No trade requests yet.</div>
+  </div>
+</section>
+
+<section id="tab-log">
+  <div class="card">
+    <h2>Assignment log</h2>
+    <div class="hint">Every seat currently assigned, in the order it was claimed. Export this whenever you need to update the official move manifest.</div>
+    <button class="btn" id="exportCsv">Export CSV</button>
+    <div class="tablewrap" style="margin-top:12px;"><table id="logTable"><thead><tr><th>Seat</th><th>Type</th><th>Holder</th><th>Ballot #</th><th>Method</th><th>Claimed</th></tr></thead><tbody></tbody></table></div>
+    <div class="empty" id="logEmpty" hidden>No seats assigned yet.</div>
+  </div>
+</section>
+
+<section id="tab-admin">
+  <div class="card">
+    <h2>0. Seed the seat list</h2>
+    <div class="hint">Run this once, before anything else, to create seat documents 01&ndash;45 in Firestore (01&ndash;06 locked as reserved). Safe to click again later — it only resets seats that are still available, never a seat someone already holds.</div>
+    <button class="btn" id="seedSeats">Seed / refresh seats 01&ndash;45</button>
+    <span class="hint" id="seedMsg"></span>
+  </div>
+
+  <div class="card">
+    <h2>1. Officer roster</h2>
+    <div class="hint">Pre-filled with the EDB roster from the July 2026 name list (SVPs/VP left out — they get the separate priority-quota email). Edit as needed, then add. Names already in the roster are skipped.</div>
+    <textarea id="rosterInput">Tan Wee Kim
+Ariella Yeo
+Sarah Chua
+Jeff Chia
+Sarah Cheang
+Rachel Lim
+Esther Ng
+Kek Jun Jie
+Rachel Wong
+Lim Yu Hao
+Gerry Hoe
+Timothy Hung
+Irwin Tan
+Lionel WX Lim
+Kong Shaowei
+Zeng Chen Yang
+Low Jia Yi
+Chang Shu Yu
+Zane Wong
+Ken Tan
+Ng Yong Hao
+Priya Gupta
+Teo Chee Yan
+Loh May Shann
+Ethan Kwong
+Choun Ray Yi
+Cedric Tan
+Naveen Venkatanarayanan
+Gene Quek
+Ariel Loo
+Aiyan Yan
+Tarleton Lau
+Delinda Mohd
+Elsie Low
+Chloe Danielle Ong
+Ng Jun Kai</textarea>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn" id="addRoster">Add to roster</button>
+      <span class="hint" id="rosterMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Draw the ballot</h2>
+    <div class="hint">Randomly assigns a ballot number to every officer on the roster who doesn't have one yet, then opens the board for picking.</div>
+    <button class="btn primary" id="drawBallot">Shuffle &amp; assign ballot numbers</button>
+    <span class="hint" id="drawMsg"></span>
+  </div>
+
+  <div class="card">
+    <h2>3. Priority quota / direct assignment</h2>
+    <div class="hint">For SVPs or VPs who opt for immediate priority, or to assign on behalf of an officer who is away — this bypasses the queue.</div>
+    <div class="row">
+      <div class="field grow"><label>Seat number</label><select id="adminSeatSelect"></select></div>
+      <div class="field grow"><label>Assign to (name)</label><input type="text" id="adminAssignName" placeholder="Full name"></div>
+      <div class="field"><label>&nbsp;</label><button class="btn" id="adminAssignBtn">Assign seat</button></div>
+    </div>
+    <div class="row">
+      <div class="field grow"><label>Release a taken seat</label><select id="adminReleaseSelect"></select></div>
+      <div class="field"><label>&nbsp;</label><button class="btn danger" id="adminReleaseBtn">Release</button></div>
+    </div>
+    <span class="hint" id="adminAssignMsg"></span>
+  </div>
+
+  <div class="card">
+    <h2>4. Trade approvals</h2>
+    <div class="tablewrap"><table id="adminTradesTable"><thead><tr><th>Requested</th><th>From</th><th>To</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="empty" id="adminTradesEmpty" hidden>No pending trades.</div>
+  </div>
+
+  <div class="card">
+    <h2>5. Seat type editor</h2>
+    <div class="hint">Target mix for seats 01&ndash;45 per the move pack: 19 Green, 20 Yellow, 3 Dark yellow, 4 Dark green (approx. — figures as supplied). Types default to "Unset" — set the real type per seat here so the board matches the floor plan.</div>
+    <div class="row">
+      <div class="field"><label>From seat</label><select id="bulkFrom"></select></div>
+      <div class="field"><label>To seat</label><select id="bulkTo"></select></div>
+      <div class="field"><label>Set type</label>
+        <select id="bulkType">
+          <option value="unset">Unset</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="darkyellow">Dark yellow</option>
+          <option value="darkgreen">Dark green</option>
+        </select>
+      </div>
+      <div class="field"><label>&nbsp;</label><button class="btn" id="bulkApply">Apply to range</button></div>
+    </div>
+    <span class="hint" id="bulkMsg"></span>
+  </div>
+
+  <div class="card">
+    <h2>Danger zone</h2>
+    <div class="row">
+      <button class="btn danger" id="resetDraftBtn">Reset ballot numbers &amp; picks</button>
+      <span class="hint">Clears every officer's ballot number and every seat's holder. Seat types and the roster are kept. Click twice to confirm.</span>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase (compat SDK — simplest to use with no build step) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+(function(){
+  // =========================================================
+  // 1. PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see README.md)
+  // =========================================================
+  var firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+  // =========================================================
+
+  var $ = function(s,el){ return (el||document).querySelector(s); };
+  var $$ = function(s,el){ return Array.prototype.slice.call((el||document).querySelectorAll(s)); };
+  var TYPE_LABEL = {green:'Green', yellow:'Yellow', darkyellow:'Dark yellow', darkgreen:'Dark green', unset:'Unset'};
+
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf('PASTE_')===0){
+    $('#setupNotice').hidden = false;
+  }
+
+  // ---------- admin unlock (UI-only, not real security) ----------
+  var ADMIN_UNLOCK_TOKEN = 'unlock-irwin-k7f2q9';
+  var isAdmin = false;
+  try{ isAdmin = localStorage.getItem('disg_admin_unlocked')==='1'; }catch(e){}
+  (function(){
+    var anchor = (location.hash||'').replace('#','');
+    if(anchor === ADMIN_UNLOCK_TOKEN){
+      isAdmin = true;
+      try{ localStorage.setItem('disg_admin_unlocked','1'); }catch(e){}
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+  })();
+  if(isAdmin){ $('#adminTabBtn').hidden = false; }
+
+  // ---------- tabs ----------
+  function setTab(name){
+    if(name==='admin' && !isAdmin) name = 'board';
+    $$('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===name); });
+    $$('section').forEach(function(s){ s.classList.toggle('active', s.id==='tab-'+name); });
+  }
+  $$('nav.tabs button').forEach(function(b){ b.addEventListener('click', function(){ setTab(b.dataset.tab); }); });
+  setTab('board');
+
+  // ---------- toast ----------
+  var toastEl = $('#toast'), toastT;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(function(){ toastEl.classList.remove('show'); }, 3200);
+  }
+
+  function confirmTwice(btn, onConfirm){
+    var armed = false, t;
+    btn.addEventListener('click', function(){
+      if(!armed){
+        armed = true;
+        btn.dataset.orig = btn.textContent;
+        btn.textContent = 'Click again to confirm';
+        t = setTimeout(function(){ armed=false; btn.textContent = btn.dataset.orig; }, 4000);
+      } else {
+        armed = false; clearTimeout(t);
+        btn.textContent = btn.dataset.orig;
+        onConfirm();
+      }
+    });
+  }
+
+  // ---------- identity ----------
+  var identitySelect = $('#identitySelect');
+  function getIdentity(){ try{ return localStorage.getItem('disg_identity')||''; }catch(e){ return ''; } }
+  function setIdentity(name){ try{ localStorage.setItem('disg_identity', name); }catch(e){} renderAll(); }
+  identitySelect.addEventListener('change', function(){ setIdentity(identitySelect.value); });
+
+  // ---------- state ----------
+  var seats = {}, officers = [], trades = [], meta = {phase:'setup'};
+  var ready = {seats:false, officers:false, trades:false, meta:false};
+  var db = null;
+
+  function seatIds(){ var ids=[]; for(var i=1;i<=45;i++){ ids.push(String(i).padStart(2,'0')); } return ids; }
+
+  function sortedOfficers(){
+    var withNo = officers.filter(function(o){ return typeof o.ballotNo === 'number'; });
+    var without = officers.filter(function(o){ return typeof o.ballotNo !== 'number'; });
+    withNo.sort(function(a,b){ return a.ballotNo - b.ballotNo; });
+    without.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+    return withNo.concat(without);
+  }
+  function currentTurnOfficer(){
+    var withNo = officers.filter(function(o){ return typeof o.ballotNo==='number'; });
+    withNo.sort(function(a,b){ return a.ballotNo-b.ballotNo; });
+    for(var i=0;i<withNo.length;i++){ if(withNo[i].status==='waiting') return withNo[i]; }
+    return null;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmtDate(iso){
+    if(!iso) return '—';
+    try{
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-SG',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ return iso; }
+  }
+
+  function renderIdentityOptions(){
+    var current = getIdentity();
+    var opts = ['<option value="">— choose your name —</option>'];
+    sortedOfficers().forEach(function(o){
+      opts.push('<option value="'+esc(o.name)+'"'+(o.name===current?' selected':'')+'>'+esc(o.name)+(typeof o.ballotNo==='number' ? ' (Ballot #'+o.ballotNo+')' : '')+'</option>');
+    });
+    identitySelect.innerHTML = opts.join('');
+    identitySelect.value = current;
+    var t = currentTurnOfficer();
+    $('#identityHint').textContent = current ? (t && t.name===current ? '— it is your turn!' : '') : '(honour system — pick your own name)';
+  }
+
+  function renderPhase(){
+    var labels = {setup:'Setting up', drawing:'Ready to draw', live:'Ballot live', closed:'Closed'};
+    $('#phaseLabel').textContent = labels[meta.phase] || meta.phase || '—';
+  }
+
+  function renderTurnBanner(){
+    var wrap = $('#turnBannerWrap');
+    var withNo = officers.filter(function(o){ return typeof o.ballotNo==='number'; }).sort(function(a,b){return a.ballotNo-b.ballotNo;});
+    var t = currentTurnOfficer();
+    if(!withNo.length){
+      wrap.innerHTML = '<div class="card"><div class="hint">No ballot numbers have been drawn yet. The Admin tab (Irwin only) adds officers and draws the ballot.</div></div>';
+      return;
+    }
+    if(!t){
+      wrap.innerHTML = '<div class="turn-banner"><div class="badge">✓</div><div><div class="who">All seats have been picked</div><div class="sub">Trading is now open — see the Trades tab.</div></div></div>';
+      return;
+    }
+    var upcoming = withNo.filter(function(o){ return o.status==='waiting' && o.id!==t.id; }).slice(0,4).map(function(o){ return '#'+o.ballotNo+' '+esc(o.name); }).join(', ');
+    wrap.innerHTML = '<div class="turn-banner"><div class="badge num">'+t.ballotNo+'</div><div><div class="who">'+esc(t.name)+' is drafting</div><div class="sub">Choose an available seat on the map below.</div>'+(upcoming?'<div class="upnext">Up next: '+upcoming+'</div>':'')+'</div></div>';
+  }
+
+  function renderQueue(){
+    var tb = $('#queueTable tbody');
+    var t = currentTurnOfficer();
+    tb.innerHTML = sortedOfficers().map(function(o){
+      var status='waiting', label='Waiting';
+      if(typeof o.ballotNo!=='number'){ status='waiting'; label='Not in draw'; }
+      else if(o.status==='picked'){ status='picked'; label='Picked'; }
+      else if(o.status==='skipped'){ status='skipped'; label='Skipped'; }
+      else if(t && t.id===o.id){ status='current'; label='On the clock'; }
+      return '<tr><td class="tabular">'+(typeof o.ballotNo==='number'?('#'+o.ballotNo):'—')+'</td><td>'+esc(o.name)+'</td><td><span class="pill '+status+'">'+label+'</span></td><td>'+(o.seatNo?esc(o.seatNo):'—')+'</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="empty">No officers yet.</td></tr>';
+  }
+
+  var pendingClaimSeat = null;
+  function renderSeatGrid(){
+    var grid = $('#seatGrid');
+    var identity = getIdentity();
+    var t = currentTurnOfficer();
+    var canPick = identity && t && t.name === identity;
+    grid.innerHTML = seatIds().map(function(id){
+      var s = seats[id] || {seatNo:id, status:(parseInt(id,10)<=6?'reserved':'available'), type:'unset'};
+      var cls = 'seat t-'+(s.type||'unset');
+      var body = '<div class="stripe"></div><div class="no tabular">'+id+'</div>';
+      if(s.status==='reserved'){ cls+=' reserved'; body+='<div class="tag">Reserved</div>'; }
+      else if(s.status==='taken'){
+        cls+=' taken';
+        body += '<div class="name">'+esc(s.holder||'—')+'</div>'+(typeof s.holderBallotNo==='number' ? '<div class="tag">#'+s.holderBallotNo+'</div>' : '<div class="tag">'+(s.method==='priority'?'Priority':'Assigned')+'</div>');
+      } else {
+        cls += ' available' + (canPick ? ' pickable' : '');
+        body += '<div class="tag">'+TYPE_LABEL[s.type||'unset']+'</div>';
+      }
+      var confirming = pendingClaimSeat===id;
+      var inner = confirming
+        ? '<div class="confirmbox"><div>Claim '+id+' for '+esc(identity)+'?</div><div class="row" style="gap:6px;"><button class="btn small primary" data-confirm-yes="'+id+'">Confirm</button><button class="btn small ghost" data-confirm-no="1">Cancel</button></div></div>'
+        : '';
+      return '<div class="'+cls+'" data-seat="'+id+'">'+body+inner+'</div>';
+    }).join('');
+
+    $$('.seat.available', grid).forEach(function(el){
+      el.addEventListener('click', function(){
+        var id = el.dataset.seat;
+        if(pendingClaimSeat === id) return;
+        if(!identity){ toast('Choose your name at the top first.'); return; }
+        if(!canPick){
+          if(!t){ toast('The ballot has not started yet.'); }
+          else { toast("It's not your turn yet — Ballot #"+t.ballotNo+' ('+t.name+') is drafting.'); }
+          return;
+        }
+        pendingClaimSeat = id; renderSeatGrid();
+      });
+    });
+    $$('[data-confirm-yes]', grid).forEach(function(el){
+      el.addEventListener('click', function(ev){ ev.stopPropagation(); claimSeat(el.getAttribute('data-confirm-yes'), identity, t); });
+    });
+    $$('[data-confirm-no]', grid).forEach(function(el){
+      el.addEventListener('click', function(ev){ ev.stopPropagation(); pendingClaimSeat=null; renderSeatGrid(); });
+    });
+  }
+
+  function claimSeat(seatId, name, officer){
+    if(!db || !officer) return;
+    var seatRef = db.collection('seats').doc(seatId);
+    var officerRef = db.collection('officers').doc(officer.id);
+    seatRef.get().then(function(snap){
+      if(snap.exists && snap.data().status==='taken'){
+        toast('That seat was just taken — pick another.');
+        pendingClaimSeat = null; renderSeatGrid();
+        return;
+      }
+      var batch = db.batch();
+      batch.set(seatRef, Object.assign({}, snap.exists?snap.data():{}, {
+        seatNo: seatId, status:'taken', holder:name, holderBallotNo:officer.ballotNo, method:'drafted', claimedAt:new Date().toISOString()
+      }));
+      batch.update(officerRef, {status:'picked', seatNo:seatId});
+      batch.commit().then(function(){
+        pendingClaimSeat = null;
+        toast('Seat '+seatId+' claimed for '+name+'.');
+      }).catch(function(){ toast('Could not save that claim — please try again.'); });
+    });
+  }
+
+  function renderTradeSelectors(){
+    var takenSeats = seatIds().map(function(id){ return seats[id]; }).filter(function(s){ return s && s.status==='taken'; });
+    var identity = getIdentity();
+    var mine = takenSeats.filter(function(s){ return s.holder===identity; });
+    $('#tradeFromSeat').innerHTML = mine.length
+      ? mine.map(function(s){ return '<option value="'+s.seatNo+'">Seat '+s.seatNo+' ('+TYPE_LABEL[s.type||'unset']+')</option>'; }).join('')
+      : '<option value="">You have no assigned seat</option>';
+    $('#tradeToSeat').innerHTML = takenSeats.filter(function(s){ return s.holder!==identity; }).map(function(s){
+      return '<option value="'+s.seatNo+'">Seat '+s.seatNo+' — '+esc(s.holder)+' ('+TYPE_LABEL[s.type||'unset']+')</option>';
+    }).join('') || '<option value="">No other seats assigned yet</option>';
+  }
+
+  $('#submitTrade').addEventListener('click', function(){
+    var identity = getIdentity();
+    var fromSeat = $('#tradeFromSeat').value, toSeat = $('#tradeToSeat').value;
+    var msg = $('#tradeMsg');
+    if(!identity){ msg.textContent = 'Choose your name at the top first.'; return; }
+    if(!fromSeat || !toSeat){ msg.textContent = 'Select both your seat and the seat to trade for.'; return; }
+    var toHolder = seats[toSeat] ? seats[toSeat].holder : null;
+    db.collection('trades').add({
+      fromName: identity, fromSeat: fromSeat, toName: toHolder||'', toSeat: toSeat,
+      note: $('#tradeNote').value||'', status:'pending', requestedAt:new Date().toISOString()
+    }).then(function(){
+      msg.textContent = 'Trade request sent — it will apply once approved.';
+      $('#tradeNote').value = '';
+    }).catch(function(){ msg.textContent = 'Could not submit — please try again.'; });
+  });
+
+  function renderTrades(){
+    var tb = $('#tradesTable tbody');
+    var sorted = trades.slice().sort(function(a,b){ return (b.requestedAt||'').localeCompare(a.requestedAt||''); });
+    $('#tradesEmpty').hidden = sorted.length>0;
+    tb.innerHTML = sorted.map(function(t){
+      return '<tr><td>'+fmtDate(t.requestedAt)+'</td><td>'+esc(t.fromName)+' (seat '+esc(t.fromSeat)+')</td><td>'+esc(t.toName)+' (seat '+esc(t.toSeat)+')</td><td>'+esc(t.note||'')+'</td><td><span class="pill '+t.status+'">'+t.status+'</span></td></tr>';
+    }).join('');
+  }
+
+  function renderAdminTrades(){
+    var tb = $('#adminTradesTable tbody');
+    var pending = trades.filter(function(t){ return t.status==='pending'; }).sort(function(a,b){ return (a.requestedAt||'').localeCompare(b.requestedAt||''); });
+    $('#adminTradesEmpty').hidden = pending.length>0;
+    tb.innerHTML = pending.map(function(t){
+      return '<tr><td>'+fmtDate(t.requestedAt)+'</td><td>'+esc(t.fromName)+' (seat '+esc(t.fromSeat)+')</td><td>'+esc(t.toName)+' (seat '+esc(t.toSeat)+')</td><td>'+esc(t.note||'')+'</td>'+
+        '<td class="row" style="gap:6px;"><button class="btn small primary" data-approve="'+t.id+'">Approve</button><button class="btn small danger" data-reject="'+t.id+'">Reject</button></td></tr>';
+    }).join('');
+    $$('[data-approve]', tb).forEach(function(el){ el.addEventListener('click', function(){ decideTrade(el.getAttribute('data-approve'), true); }); });
+    $$('[data-reject]', tb).forEach(function(el){ el.addEventListener('click', function(){ decideTrade(el.getAttribute('data-reject'), false); }); });
+  }
+
+  function decideTrade(id, approve){
+    var t = trades.find(function(x){ return x.id===id; });
+    if(!t) return;
+    if(!approve){ db.collection('trades').doc(id).update({status:'rejected', decidedAt:new Date().toISOString()}); return; }
+    var fromSeatRef = db.collection('seats').doc(t.fromSeat), toSeatRef = db.collection('seats').doc(t.toSeat);
+    Promise.all([fromSeatRef.get(), toSeatRef.get()]).then(function(res){
+      var fromData = res[0].data()||{}, toData = res[1].data()||{};
+      if(fromData.status!=='taken' || toData.status!=='taken'){ toast('Both seats must still be assigned to approve this trade.'); return; }
+      var fromHolderName = fromData.holder, fromBallot = fromData.holderBallotNo;
+      var toHolderName = toData.holder, toBallot = toData.holderBallotNo;
+      var fromOfficer = officers.find(function(o){ return o.name===fromHolderName; });
+      var toOfficer = officers.find(function(o){ return o.name===toHolderName; });
+      var batch = db.batch();
+      batch.set(fromSeatRef, Object.assign({}, fromData, {holder:toHolderName, holderBallotNo:toBallot, method:'trade'}));
+      batch.set(toSeatRef, Object.assign({}, toData, {holder:fromHolderName, holderBallotNo:fromBallot, method:'trade'}));
+      if(fromOfficer) batch.update(db.collection('officers').doc(fromOfficer.id), {seatNo:t.toSeat});
+      if(toOfficer) batch.update(db.collection('officers').doc(toOfficer.id), {seatNo:t.fromSeat});
+      batch.update(db.collection('trades').doc(id), {status:'approved', decidedAt:new Date().toISOString()});
+      batch.commit().then(function(){ toast('Trade approved and seats swapped.'); }).catch(function(){ toast('Something went wrong applying the trade.'); });
+    });
+  }
+
+  function renderLog(){
+    var takenSeats = seatIds().map(function(id){ return seats[id]; }).filter(function(s){ return s && s.status==='taken'; });
+    takenSeats.sort(function(a,b){ return (a.claimedAt||'').localeCompare(b.claimedAt||''); });
+    $('#logEmpty').hidden = takenSeats.length>0;
+    $('#logTable tbody').innerHTML = takenSeats.map(function(s){
+      return '<tr><td class="tabular">'+s.seatNo+'</td><td>'+TYPE_LABEL[s.type||'unset']+'</td><td>'+esc(s.holder)+'</td><td class="tabular">'+(typeof s.holderBallotNo==='number'?s.holderBallotNo:'—')+'</td><td>'+(s.method||'drafted')+'</td><td>'+fmtDate(s.claimedAt)+'</td></tr>';
+    }).join('');
+  }
+
+  $('#exportCsv').addEventListener('click', function(){
+    var takenSeats = seatIds().map(function(id){ return seats[id]; }).filter(function(s){ return s && s.status==='taken'; });
+    takenSeats.sort(function(a,b){ return (a.claimedAt||'').localeCompare(b.claimedAt||''); });
+    var rows = [['Seat','Type','Holder','Ballot Number','Method','Claimed At']];
+    takenSeats.forEach(function(s){ rows.push([s.seatNo, TYPE_LABEL[s.type||'unset'], s.holder, (typeof s.holderBallotNo==='number'?s.holderBallotNo:''), s.method||'drafted', s.claimedAt||'']); });
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c==null?'':c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+    var blob = new Blob([csv], {type:'text/csv'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download='disg-seat-assignments.csv'; document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- admin: seed seats ----------
+  $('#seedSeats').addEventListener('click', function(){
+    var batch = db.batch();
+    seatIds().forEach(function(id){
+      var existing = seats[id];
+      if(existing && existing.status==='taken') return; // never clobber a claimed seat
+      var reserved = parseInt(id,10)<=6;
+      batch.set(db.collection('seats').doc(id), Object.assign({}, existing||{}, {
+        seatNo:id, status: reserved?'reserved':'available', type: existing?existing.type:'unset',
+        holder:null, holderBallotNo:null, method:null, claimedAt:null
+      }));
+    });
+    batch.set(db.collection('meta').doc('state'), {phase: meta.phase||'setup', updatedAt:new Date().toISOString()}, {merge:true});
+    batch.commit().then(function(){ $('#seedMsg').textContent = 'Seats 01–45 are ready.'; }).catch(function(){ $('#seedMsg').textContent = 'Could not seed seats — check your Firestore rules.'; });
+  });
+
+  // ---------- admin: roster ----------
+  $('#addRoster').addEventListener('click', function(){
+    var lines = $('#rosterInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    var existing = {}; officers.forEach(function(o){ existing[(o.name||'').toLowerCase()] = true; });
+    var toAdd = [];
+    lines.forEach(function(name){ if(!existing[name.toLowerCase()]){ existing[name.toLowerCase()]=true; toAdd.push(name); } });
+    if(!toAdd.length){ $('#rosterMsg').textContent = 'Nothing new to add.'; return; }
+    var batch = db.batch();
+    toAdd.forEach(function(name){
+      var ref = db.collection('officers').doc();
+      batch.set(ref, {name:name, ballotNo:null, status:'waiting', seatNo:null, addedAt:new Date().toISOString()});
+    });
+    batch.commit().then(function(){ $('#rosterMsg').textContent = 'Added '+toAdd.length+' officer(s).'; }).catch(function(){ $('#rosterMsg').textContent = 'Could not add officers — please try again.'; });
+  });
+
+  // ---------- admin: draw ballot ----------
+  $('#drawBallot').addEventListener('click', function(){
+    var withoutNo = officers.filter(function(o){ return typeof o.ballotNo!=='number'; });
+    if(!withoutNo.length){ $('#drawMsg').textContent = 'Everyone on the roster already has a ballot number.'; return; }
+    var maxNo = officers.reduce(function(m,o){ return typeof o.ballotNo==='number' ? Math.max(m,o.ballotNo) : m; }, 0);
+    var shuffled = withoutNo.slice();
+    for(var i=shuffled.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var tmp=shuffled[i]; shuffled[i]=shuffled[j]; shuffled[j]=tmp; }
+    var batch = db.batch();
+    shuffled.forEach(function(o, idx){ batch.update(db.collection('officers').doc(o.id), {ballotNo: maxNo+idx+1, status:'waiting'}); });
+    batch.set(db.collection('meta').doc('state'), {phase:'live', updatedAt:new Date().toISOString()}, {merge:true});
+    batch.commit().then(function(){ $('#drawMsg').textContent = 'Ballot numbers assigned to '+shuffled.length+' officer(s). The board is live.'; })
+      .catch(function(){ $('#drawMsg').textContent = 'Could not draw the ballot — please try again.'; });
+  });
+
+  // ---------- admin: direct assign / release ----------
+  function fillAdminSeatSelectors(){
+    var avail = seatIds().filter(function(id){ var s=seats[id]; return !s || s.status==='available'; });
+    $('#adminSeatSelect').innerHTML = avail.map(function(id){ return '<option value="'+id+'">Seat '+id+'</option>'; }).join('') || '<option value="">No available seats</option>';
+    var taken = seatIds().filter(function(id){ var s=seats[id]; return s && s.status==='taken'; });
+    $('#adminReleaseSelect').innerHTML = taken.map(function(id){ return '<option value="'+id+'">Seat '+id+' — '+esc(seats[id].holder||'')+'</option>'; }).join('') || '<option value="">No assigned seats</option>';
+  }
+
+  $('#adminAssignBtn').addEventListener('click', function(){
+    var seatId = $('#adminSeatSelect').value, name = $('#adminAssignName').value.trim();
+    if(!seatId || !name){ $('#adminAssignMsg').textContent = 'Choose a seat and enter a name.'; return; }
+    var existing = seats[seatId] || {};
+    var officer = officers.find(function(o){ return o.name===name; });
+    db.collection('seats').doc(seatId).set(Object.assign({}, existing, {
+      seatNo:seatId, status:'taken', holder:name, holderBallotNo: officer && typeof officer.ballotNo==='number' ? officer.ballotNo : null,
+      method: officer ? 'admin-assigned' : 'priority', claimedAt:new Date().toISOString()
+    })).then(function(){
+      if(officer){ return db.collection('officers').doc(officer.id).update({status:'picked', seatNo:seatId}); }
+    }).then(function(){ $('#adminAssignMsg').textContent = 'Seat '+seatId+' assigned to '+name+'.'; $('#adminAssignName').value=''; })
+      .catch(function(){ $('#adminAssignMsg').textContent = 'Could not assign that seat.'; });
+  });
+
+  $('#adminReleaseBtn').addEventListener('click', function(){
+    var seatId = $('#adminReleaseSelect').value;
+    if(!seatId) return;
+    var existing = seats[seatId] || {};
+    var holderName = existing.holder;
+    var officer = officers.find(function(o){ return o.name===holderName; });
+    db.collection('seats').doc(seatId).set(Object.assign({}, existing, {status:'available', holder:null, holderBallotNo:null, method:null, claimedAt:null}))
+      .then(function(){ if(officer){ return db.collection('officers').doc(officer.id).update({status:'waiting', seatNo:null}); } })
+      .then(function(){ $('#adminAssignMsg').textContent = 'Seat '+seatId+' released.'; })
+      .catch(function(){ $('#adminAssignMsg').textContent = 'Could not release that seat.'; });
+  });
+
+  // ---------- admin: seat type bulk editor ----------
+  function fillBulkSelectors(){
+    var opts = seatIds().map(function(id){ return '<option value="'+id+'">'+id+'</option>'; }).join('');
+    $('#bulkFrom').innerHTML = opts; $('#bulkTo').innerHTML = opts; $('#bulkTo').value = '45';
+  }
+  $('#bulkApply').addEventListener('click', function(){
+    var from = parseInt($('#bulkFrom').value,10), to = parseInt($('#bulkTo').value,10), type = $('#bulkType').value;
+    if(to<from){ var tmp=from; from=to; to=tmp; }
+    var batch = db.batch();
+    for(var i=from;i<=to;i++){
+      var id = String(i).padStart(2,'0');
+      var existing = seats[id] || {seatNo:id, status: i<=6 ? 'reserved' : 'available'};
+      batch.set(db.collection('seats').doc(id), Object.assign({}, existing, {type:type}));
+    }
+    batch.commit().then(function(){ $('#bulkMsg').textContent = 'Updated seats '+String(from).padStart(2,'0')+'–'+String(to).padStart(2,'0')+' to '+TYPE_LABEL[type]+'.'; })
+      .catch(function(){ $('#bulkMsg').textContent = 'Could not update those seats.'; });
+  });
+
+  // ---------- admin: reset ----------
+  confirmTwice($('#resetDraftBtn'), function(){
+    var batch = db.batch();
+    officers.forEach(function(o){ batch.update(db.collection('officers').doc(o.id), {ballotNo:null, status:'waiting', seatNo:null}); });
+    seatIds().filter(function(id){ return parseInt(id,10)>6; }).forEach(function(id){
+      var existing = seats[id] || {seatNo:id};
+      batch.set(db.collection('seats').doc(id), Object.assign({}, existing, {status:'available', holder:null, holderBallotNo:null, method:null, claimedAt:null}));
+    });
+    batch.set(db.collection('meta').doc('state'), {phase:'setup', updatedAt:new Date().toISOString()}, {merge:true});
+    batch.commit().then(function(){ toast('Ballot reset.'); }).catch(function(){ toast('Reset did not fully complete.'); });
+  });
+
+  // ---------- master render ----------
+  function renderAll(){
+    if(!ready.seats || !ready.officers || !ready.trades || !ready.meta) return;
+    renderPhase(); renderIdentityOptions(); renderTurnBanner(); renderQueue(); renderSeatGrid();
+    renderTradeSelectors(); renderTrades(); renderAdminTrades(); renderLog();
+    fillAdminSeatSelectors(); fillBulkSelectors();
+  }
+
+  // ---------- boot ----------
+  function boot(){
+    if(!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf('PASTE_')===0) return;
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+
+    db.collection('seats').onSnapshot(function(snap){
+      seats = {}; snap.forEach(function(doc){ seats[doc.id] = Object.assign({id:doc.id}, doc.data()); });
+      ready.seats = true; renderAll();
+    }, function(err){ toast('Seats sync error: '+err.message); });
+
+    db.collection('officers').onSnapshot(function(snap){
+      officers = []; snap.forEach(function(doc){ officers.push(Object.assign({id:doc.id}, doc.data())); });
+      ready.officers = true; renderAll();
+    }, function(err){ toast('Officers sync error: '+err.message); });
+
+    db.collection('trades').onSnapshot(function(snap){
+      trades = []; snap.forEach(function(doc){ trades.push(Object.assign({id:doc.id}, doc.data())); });
+      ready.trades = true; renderAll();
+    }, function(err){ toast('Trades sync error: '+err.message); });
+
+    db.collection('meta').doc('state').onSnapshot(function(snap){
+      meta = snap.exists ? snap.data() : {phase:'setup'};
+      ready.meta = true; renderAll();
+    }, function(err){ toast('Status sync error: '+err.message); });
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

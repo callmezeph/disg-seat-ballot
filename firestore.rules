@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Open read/write, no login required — matches the honour-system model
+    // of the tool itself (anyone with the link can claim a seat or submit
+    // a trade; the Admin tab is only hidden in the UI, not locked here).
+    //
+    // This is intentionally permissive for a short-lived internal tool.
+    // Do not reuse this Firebase project for anything containing sensitive
+    // data, and delete the project once the seat move is settled
+    // (Firebase console → Project settings → General → Delete project).
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
