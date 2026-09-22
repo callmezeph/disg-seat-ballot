@@ -13,7 +13,7 @@
     --ink:#16233b; --ink-soft:#55637c; --ink-faint:#8894a8;
     --accent:#a8791f; --accent-ink:#6b4a12; --accent-bg:#fbf1de;
     --ok:#1f7a4d; --ok-bg:#e6f4ec;
-    --taken:#33455f; --taken-bg:#e7ebf2;
+    --taken:#232c3d; --taken-bg:#232c3d; --taken-text:#aab4c6;
     --muted:#8a93a6; --muted-bg:#eef0f4;
     --danger:#a9342b; --danger-bg:#fbeae8;
     --t-green:#3f9463; --t-yellow:#d1a021; --t-darkyellow:#a3701f; --t-darkgreen:#2c6b47;
@@ -25,7 +25,7 @@
       --ink:#e8ecf4; --ink-soft:#aab4c6; --ink-faint:#7c869a;
       --accent:#d7a53f; --accent-ink:#f4d998; --accent-bg:#2c2413;
       --ok:#4cbf85; --ok-bg:#12281d;
-      --taken:#c3cee2; --taken-bg:#232f42;
+      --taken:#05070b; --taken-bg:#05070b; --taken-text:#4c5772;
       --muted:#7c869a; --muted-bg:#1d2532;
       --danger:#e5766c; --danger-bg:#301917;
       --t-green:#4cbf85; --t-yellow:#e0b943; --t-darkyellow:#c2903f; --t-darkgreen:#4a9a6c;
@@ -82,7 +82,7 @@
   .swatch{width:11px; height:11px; border-radius:3px; display:inline-block;}
 
   .seatgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:8px; margin-top:12px;}
-  .seat{position:relative; border-radius:9px; border:1.5px solid var(--line); background:var(--surface-2); padding:8px 6px 7px; font-size:11.5px; text-align:center; min-height:64px; display:flex; flex-direction:column; justify-content:center; gap:3px;}
+  .seat{position:relative; border-radius:9px; border:1.5px solid var(--line); background:var(--surface-2); padding:8px 6px 7px; font-size:11.5px; text-align:center; min-height:64px; display:flex; flex-direction:column; justify-content:center; gap:3px; transition:background .35s ease, opacity .35s ease, border-color .35s ease;}
   .seat .no{font-family:'Fraunces',serif; font-weight:600; font-size:14px;}
   .seat .stripe{position:absolute; top:0; left:0; right:0; height:4px; border-radius:9px 9px 0 0;}
   .seat.t-green .stripe{background:var(--t-green);}
@@ -91,9 +91,15 @@
   .seat.t-darkgreen .stripe{background:var(--t-darkgreen);}
   .seat.t-unset .stripe{background:repeating-linear-gradient(45deg,var(--line),var(--line) 4px,transparent 4px,transparent 8px);}
   .seat.available{cursor:pointer;}
+  .seat.available.t-green{background:color-mix(in srgb, var(--t-green) 16%, var(--surface-2));}
+  .seat.available.t-yellow{background:color-mix(in srgb, var(--t-yellow) 18%, var(--surface-2));}
+  .seat.available.t-darkyellow{background:color-mix(in srgb, var(--t-darkyellow) 18%, var(--surface-2));}
+  .seat.available.t-darkgreen{background:color-mix(in srgb, var(--t-darkgreen) 18%, var(--surface-2));}
   .seat.available:hover{border-color:var(--ok); box-shadow:0 0 0 2px var(--ok-bg);}
   .seat.pickable{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg);}
-  .seat.taken{background:var(--taken-bg); border-color:var(--taken);}
+  .seat.taken{background:var(--taken-bg); border-color:var(--taken); color:var(--taken-text); opacity:.82;}
+  .seat.taken .stripe{background:var(--taken-text); opacity:.5;}
+  .seat.taken .no{color:var(--taken-text);}
   .seat.taken .name{font-weight:600; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .seat.reserved{background:repeating-linear-gradient(135deg,var(--muted-bg),var(--muted-bg) 6px,var(--bg) 6px,var(--bg) 12px); color:var(--ink-faint); cursor:not-allowed;}
   .seat .tag{font-size:10px; color:var(--ink-faint);}
@@ -160,7 +166,7 @@
   <div class="card">
     <h2>Level 22 floor plan</h2>
     <div class="hint">For spatial orientation only — WKX, ITD, DISG zones, mailroom, pantry, lockers and meeting rooms. Seat numbers shown here are from the reference floor plan and may not line up 1:1 with the 01&ndash;45 ballot numbering; treat the seat map below as the source of truth for the draw.</div>
-    <img src="floorplan.png" alt="Level 22 neighbourhood floor plan" style="width:100%; border-radius:10px; border:1px solid var(--line); display:block;">
+    <img src="floorplan.jpg" alt="Level 22 neighbourhood floor plan showing WKX, ITD, DISG and shared facility zones" style="width:100%; border-radius:10px; border:1px solid var(--line); display:block;">
   </div>
 
   <div class="card">
@@ -314,10 +320,68 @@ Ng Jun Kai</textarea>
   </div>
 
   <div class="card">
+    <h2>6. Bulk seat type import</h2>
+    <div class="hint">Pre-filled with a best-effort reading of the floor plan colours for seats 001&ndash;045 (sampled pixel-by-pixel, not just eyeballed — but still a transcription, not a guarantee). <strong>Spot-check before relying on it</strong>, especially seats 018, 020, 035 (read as dark green) and 031, 033 (read as dark yellow/orange) — these broke the pattern of their neighbours, which is exactly where a misread is most likely. Edit any line below, then apply. One <code>seatNo:type</code> pair per line — valid types: unset, green, yellow, darkyellow, darkgreen.</div>
+    <textarea id="bulkImportInput" style="min-height:220px; font-family:ui-monospace,monospace; font-size:12.5px;">001:green
+002:green
+003:green
+004:green
+005:green
+006:green
+007:green
+008:green
+009:yellow
+010:yellow
+011:yellow
+012:yellow
+013:yellow
+014:green
+015:green
+016:green
+017:green
+018:darkgreen
+019:green
+020:darkgreen
+021:green
+022:green
+023:green
+024:green
+025:yellow
+026:yellow
+027:yellow
+028:yellow
+029:yellow
+030:yellow
+031:darkyellow
+032:yellow
+033:darkyellow
+034:yellow
+035:darkgreen
+036:green
+037:green
+038:green
+039:green
+040:yellow
+041:yellow
+042:yellow
+043:yellow
+044:yellow
+045:yellow</textarea>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn primary" id="bulkImportApply">Apply this list</button>
+      <span class="hint" id="bulkImportMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Danger zone</h2>
     <div class="row">
       <button class="btn danger" id="resetDraftBtn">Reset ballot numbers &amp; picks</button>
       <span class="hint">Clears every officer's ballot number and every seat's holder. Seat types and the roster are kept. Click twice to confirm.</span>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn danger" id="clearRosterBtn">Clear entire roster</button>
+      <span class="hint">Deletes every officer record outright (useful after testing with throwaway names). Seats and their types are untouched. Click twice to confirm.</span>
     </div>
   </div>
 </section>
@@ -334,12 +398,12 @@ Ng Jun Kai</textarea>
   // 1. PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see README.md)
   // =========================================================
   var firebaseConfig = {
-    apiKey: "AIzaSyAsZGh4ZW9m5dZ81t-SkQp2SP2Ddf-vOmk",
-    authDomain: "disg-seat-ballot.firebaseapp.com",
-    projectId: "disg-seat-ballot",
-    storageBucket: "disg-seat-ballot.firebasestorage.app",
-    messagingSenderId: "999132958092",
-    appId: "1:999132958092:web:1b28e03b10c15f0a581aa9",
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
   };
   // =========================================================
 
@@ -735,6 +799,38 @@ Ng Jun Kai</textarea>
     }
     batch.commit().then(function(){ $('#bulkMsg').textContent = 'Updated seats '+String(from).padStart(2,'0')+'–'+String(to).padStart(2,'0')+' to '+TYPE_LABEL[type]+'.'; })
       .catch(function(){ $('#bulkMsg').textContent = 'Could not update those seats.'; });
+  });
+
+  // ---------- admin: bulk seat type import ----------
+  $('#bulkImportApply').addEventListener('click', function(){
+    var lines = $('#bulkImportInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    var validTypes = ['unset','green','yellow','darkyellow','darkgreen'];
+    var errors = [], writes = [];
+    lines.forEach(function(line, idx){
+      var m = line.match(/^(\d{1,3}):(\w+)$/);
+      if(!m){ errors.push('Line '+(idx+1)+': "'+line+'" is not in seatNo:type form.'); return; }
+      var seatId = m[1].padStart(2,'0'), type = m[2].toLowerCase();
+      if(validTypes.indexOf(type)===-1){ errors.push('Line '+(idx+1)+': "'+type+'" is not a valid type.'); return; }
+      writes.push({seatId:seatId, type:type});
+    });
+    if(errors.length){ $('#bulkImportMsg').textContent = errors.slice(0,3).join(' '); return; }
+    if(!writes.length){ $('#bulkImportMsg').textContent = 'Nothing to apply.'; return; }
+    var batch = db.batch();
+    writes.forEach(function(w){
+      var existing = seats[w.seatId] || {seatNo:w.seatId, status: parseInt(w.seatId,10)<=6 ? 'reserved' : 'available'};
+      batch.set(db.collection('seats').doc(w.seatId), Object.assign({}, existing, {type:w.type}));
+    });
+    batch.commit().then(function(){ $('#bulkImportMsg').textContent = 'Applied types to '+writes.length+' seat(s).'; })
+      .catch(function(){ $('#bulkImportMsg').textContent = 'Could not apply — please try again.'; });
+  });
+
+  // ---------- admin: clear roster ----------
+  confirmTwice($('#clearRosterBtn'), function(){
+    if(!officers.length){ toast('Roster is already empty.'); return; }
+    var batch = db.batch();
+    officers.forEach(function(o){ batch.delete(db.collection('officers').doc(o.id)); });
+    batch.commit().then(function(){ toast('Roster cleared ('+officers.length+' officer(s) removed).'); })
+      .catch(function(){ toast('Could not clear the roster fully.'); });
   });
 
   // ---------- admin: reset ----------
