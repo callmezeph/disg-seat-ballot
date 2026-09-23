@@ -96,7 +96,8 @@
   .seat.available.t-darkyellow{background:color-mix(in srgb, var(--t-darkyellow) 18%, var(--surface-2));}
   .seat.available.t-darkgreen{background:color-mix(in srgb, var(--t-darkgreen) 18%, var(--surface-2));}
   .seat.available:hover{border-color:var(--ok); box-shadow:0 0 0 2px var(--ok-bg);}
-  .seat.pickable{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg);}
+  .seat.pickable{border-color:var(--ok); box-shadow:0 0 0 2px var(--ok-bg); animation:seatPulse 1.6s ease-in-out infinite;}
+  @keyframes seatPulse{0%,100%{box-shadow:0 0 0 2px var(--ok-bg);} 50%{box-shadow:0 0 0 4px var(--ok-bg);}}
   .seat.taken{background:var(--taken-bg); border-color:var(--taken); color:var(--taken-text); opacity:.82;}
   .seat.taken .stripe{background:var(--taken-text); opacity:.5;}
   .seat.taken .no{color:var(--taken-text);}
@@ -112,8 +113,8 @@
   .pseat.reserved{background:repeating-linear-gradient(135deg, rgba(40,44,56,.55), rgba(40,44,56,.55) 4px, rgba(120,124,140,.4) 4px, rgba(120,124,140,.4) 8px); box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);}
   .pseat.available{background:rgba(31,122,77,0); box-shadow:inset 0 0 0 1.5px rgba(31,122,77,.55);}
   .pseat.available:hover{background:rgba(31,122,77,.28); box-shadow:inset 0 0 0 2px var(--ok); cursor:pointer;}
-  .pseat.pickable{box-shadow:inset 0 0 0 2px var(--accent); animation:pseatPulse 1.6s ease-in-out infinite;}
-  @keyframes pseatPulse{0%,100%{background:rgba(31,110,214,.12);} 50%{background:rgba(31,110,214,.32);}}
+  .pseat.pickable{box-shadow:inset 0 0 0 2px var(--ok); animation:pseatPulse 1.6s ease-in-out infinite;}
+  @keyframes pseatPulse{0%,100%{background:rgba(31,122,77,.14);} 50%{background:rgba(31,122,77,.34);}}
   .pseat.taken{background:rgba(5,7,11,.74); box-shadow:inset 0 0 0 1px rgba(170,180,198,.35);}
   .pseat.taken::before, .pseat.taken::after{content:''; position:absolute; left:8%; right:8%; top:50%; height:2px; background:rgba(230,235,245,.85); transform-origin:center;}
   .pseat.taken::before{transform:translateY(-50%) rotate(18deg);}
@@ -434,13 +435,13 @@ Ng Jun Kai</textarea>
   // =========================================================
   // 1. PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see README.md)
   // =========================================================
- var firebaseConfig = {
-    apiKey: "AIzaSyAsZGh4ZW9m5dZ81t-SkQp2SP2Ddf-vOmk",
-    authDomain: "disg-seat-ballot.firebaseapp.com",
-    projectId: "disg-seat-ballot",
-    storageBucket: "disg-seat-ballot.firebasestorage.app",
-    messagingSenderId: "999132958092",
-    appId: "1:999132958092:web:1b28e03b10c15f0a581aa9",
+  var firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
   };
   // =========================================================
 
