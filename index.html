@@ -106,6 +106,24 @@
   .seat .confirmbox{position:absolute; inset:0; background:var(--surface); border:2px solid var(--accent); border-radius:9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; z-index:2; padding:4px;}
   .seat .confirmbox button{font-size:11px; padding:4px 8px;}
 
+  .photowrap{position:relative; width:100%; line-height:0; border-radius:10px; overflow:hidden; border:1px solid var(--line);}
+  .photowrap img{width:100%; display:block;}
+  .pseat{position:absolute; box-sizing:border-box; border-radius:2px; cursor:default; transition:background .35s ease, opacity .35s ease, box-shadow .2s ease;}
+  .pseat.reserved{background:repeating-linear-gradient(135deg, rgba(40,44,56,.55), rgba(40,44,56,.55) 4px, rgba(120,124,140,.4) 4px, rgba(120,124,140,.4) 8px); box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);}
+  .pseat.available{background:rgba(31,122,77,0); box-shadow:inset 0 0 0 1.5px rgba(31,122,77,.55);}
+  .pseat.available:hover{background:rgba(31,122,77,.28); box-shadow:inset 0 0 0 2px var(--ok); cursor:pointer;}
+  .pseat.pickable{box-shadow:inset 0 0 0 2px var(--accent); animation:pseatPulse 1.6s ease-in-out infinite;}
+  @keyframes pseatPulse{0%,100%{background:rgba(31,110,214,.12);} 50%{background:rgba(31,110,214,.32);}}
+  .pseat.taken{background:rgba(5,7,11,.74); box-shadow:inset 0 0 0 1px rgba(170,180,198,.35);}
+  .pseat.taken::before, .pseat.taken::after{content:''; position:absolute; left:8%; right:8%; top:50%; height:2px; background:rgba(230,235,245,.85); transform-origin:center;}
+  .pseat.taken::before{transform:translateY(-50%) rotate(18deg);}
+  .pseat.taken::after{transform:translateY(-50%) rotate(-18deg);}
+  .photo-hint{position:absolute; pointer-events:none; z-index:5; background:var(--ink,#1c2230); color:#fff; font-size:11.5px; padding:4px 8px; border-radius:6px; transform:translate(-50%,-130%); white-space:nowrap; opacity:0; transition:opacity .12s ease;}
+  .photo-hint.show{opacity:1;}
+  .photolegend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin-top:10px;}
+  .photolegend span{display:inline-flex; align-items:center; gap:6px;}
+  .photolegend i{width:14px; height:14px; border-radius:3px; display:inline-block;}
+
   table{width:100%; border-collapse:collapse; font-size:13.5px;}
   th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);}
   th{color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.03em;}
@@ -164,9 +182,17 @@
   <div id="turnBannerWrap"></div>
 
   <div class="card">
-    <h2>Level 22 floor plan</h2>
-    <div class="hint">For spatial orientation only — WKX, ITD, DISG zones, mailroom, pantry, lockers and meeting rooms. Seat numbers shown here are from the reference floor plan and may not line up 1:1 with the 01&ndash;45 ballot numbering; treat the seat map below as the source of truth for the draw.</div>
-    <img src="floorplan.jpg" alt="Level 22 neighbourhood floor plan showing WKX, ITD, DISG and shared facility zones" style="width:100%; border-radius:10px; border:1px solid var(--line); display:block;">
+    <h2>Level 22 floor plan — live</h2>
+    <div class="hint">Seats 001&ndash;006 (reserved for transitory members) are shaded grey. Taken seats darken and cross out as they're claimed, live. Hover a seat for details.</div>
+    <div class="photowrap" id="photoWrap">
+      <img src="floorplan-detailed.jpg" alt="Level 22 detailed floor plan with numbered EDB seats">
+      <div class="photo-hint" id="photoHint"></div>
+    </div>
+    <div class="photolegend">
+      <span><i style="background:rgba(120,120,130,.34); box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);"></i>Reserved (001&ndash;006)</span>
+      <span><i style="background:rgba(31,122,77,.15); box-shadow:inset 0 0 0 1.5px rgba(31,122,77,.55);"></i>Available</span>
+      <span><i style="background:rgba(5,7,11,.74);"></i>Taken</span>
+    </div>
   </div>
 
   <div class="card">
@@ -410,6 +436,8 @@ Ng Jun Kai</textarea>
   var $ = function(s,el){ return (el||document).querySelector(s); };
   var $$ = function(s,el){ return Array.prototype.slice.call((el||document).querySelectorAll(s)); };
   var TYPE_LABEL = {green:'Green', yellow:'Yellow', darkyellow:'Dark yellow', darkgreen:'Dark green', unset:'Unset'};
+  var SEAT_BBOX = {"01":{"left":0.642,"top":71.993,"width":2.2,"height":2.858},"02":{"left":0.642,"top":74.85,"width":2.2,"height":2.858},"03":{"left":0.642,"top":77.708,"width":2.2,"height":2.858},"04":{"left":0.642,"top":80.566,"width":2.2,"height":2.858},"05":{"left":0.642,"top":83.423,"width":2.2,"height":2.858},"06":{"left":0.642,"top":86.281,"width":2.2,"height":2.858},"08":{"left":7.424,"top":88.33,"width":1.742,"height":3.636},"07":{"left":7.424,"top":91.966,"width":1.742,"height":3.636},"11":{"left":13.657,"top":88.51,"width":1.742,"height":3.142},"10":{"left":13.657,"top":91.921,"width":1.742,"height":3.052},"09":{"left":13.657,"top":95.242,"width":1.742,"height":3.142},"14":{"left":15.765,"top":88.51,"width":1.742,"height":3.142},"13":{"left":15.765,"top":91.831,"width":1.742,"height":3.142},"12":{"left":15.765,"top":95.242,"width":1.742,"height":3.142},"17":{"left":22.273,"top":88.689,"width":1.833,"height":3.232},"16":{"left":22.273,"top":92.101,"width":1.833,"height":3.142},"15":{"left":22.273,"top":95.512,"width":1.833,"height":3.142},"19":{"left":24.473,"top":88.689,"width":1.742,"height":3.232},"18":{"left":24.473,"top":92.19,"width":1.742,"height":3.321},"21":{"left":30.889,"top":88.869,"width":1.742,"height":3.232},"20":{"left":30.889,"top":92.28,"width":1.742,"height":3.142},"24":{"left":32.997,"top":88.869,"width":1.742,"height":3.232},"23":{"left":32.997,"top":92.28,"width":1.742,"height":3.142},"22":{"left":32.997,"top":95.601,"width":1.742,"height":3.232},"27":{"left":39.23,"top":88.51,"width":1.742,"height":3.142},"26":{"left":39.23,"top":91.831,"width":1.742,"height":3.142},"25":{"left":39.23,"top":95.242,"width":1.742,"height":3.142},"30":{"left":41.338,"top":88.51,"width":1.742,"height":3.142},"29":{"left":41.338,"top":91.831,"width":1.742,"height":3.142},"28":{"left":41.43,"top":95.422,"width":1.742,"height":3.142},"32":{"left":47.663,"top":88.779,"width":1.742,"height":3.052},"31":{"left":47.663,"top":92.19,"width":1.65,"height":3.052},"34":{"left":49.771,"top":88.779,"width":1.742,"height":3.052},"33":{"left":49.863,"top":92.19,"width":1.65,"height":3.052},"36":{"left":71.127,"top":88.689,"width":1.742,"height":3.232},"35":{"left":71.127,"top":92.19,"width":1.742,"height":3.321},"39":{"left":73.236,"top":88.689,"width":1.833,"height":3.232},"38":{"left":73.236,"top":92.101,"width":1.833,"height":3.232},"37":{"left":73.236,"top":95.512,"width":1.833,"height":3.142},"42":{"left":79.835,"top":88.51,"width":1.742,"height":3.142},"41":{"left":79.835,"top":91.831,"width":1.742,"height":3.142},"40":{"left":79.835,"top":95.242,"width":1.742,"height":3.142},"45":{"left":81.943,"top":88.51,"width":1.742,"height":3.142},"44":{"left":81.943,"top":91.921,"width":1.742,"height":3.052},"43":{"left":81.943,"top":95.242,"width":1.742,"height":3.142}}
+;
 
   if(!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf('PASTE_')===0){
     $('#setupNotice').hidden = false;
@@ -588,6 +616,79 @@ Ng Jun Kai</textarea>
     $$('[data-confirm-no]', grid).forEach(function(el){
       el.addEventListener('click', function(ev){ ev.stopPropagation(); pendingClaimSeat=null; renderSeatGrid(); });
     });
+
+    renderPhotoOverlay(identity, t, canPick);
+  }
+
+  var photoOverlayBuilt = false;
+  function renderPhotoOverlay(identity, t, canPick){
+    var wrap = $('#photoWrap');
+    if(!wrap) return;
+    if(identity===undefined){ identity = getIdentity(); t = currentTurnOfficer(); canPick = identity && t && t.name === identity; }
+    var hintEl = $('#photoHint');
+
+    if(!photoOverlayBuilt){
+      Object.keys(SEAT_BBOX).forEach(function(id){
+        var b = SEAT_BBOX[id];
+        var el = document.createElement('div');
+        el.className = 'pseat';
+        el.dataset.seat = id;
+        el.style.left = b.left+'%'; el.style.top = b.top+'%';
+        el.style.width = b.width+'%'; el.style.height = b.height+'%';
+        el.addEventListener('mouseenter', function(){ showPhotoHint(el); });
+        el.addEventListener('mousemove', function(){ showPhotoHint(el); });
+        el.addEventListener('mouseleave', function(){ hintEl.classList.remove('show'); });
+        el.addEventListener('click', function(){ onPhotoSeatClick(id); });
+        wrap.appendChild(el);
+      });
+      photoOverlayBuilt = true;
+    }
+
+    Object.keys(SEAT_BBOX).forEach(function(id){
+      var el = wrap.querySelector('.pseat[data-seat="'+id+'"]');
+      if(!el) return;
+      var s = seats[id] || {seatNo:id, status:(parseInt(id,10)<=6?'reserved':'available'), type:'unset'};
+      el.className = 'pseat';
+      if(s.status==='reserved'){ el.classList.add('reserved'); el.title = 'Seat '+id+' — reserved (transitory)'; }
+      else if(s.status==='taken'){
+        el.classList.add('taken');
+        el.title = 'Seat '+id+' — taken by '+(s.holder||'—');
+      } else {
+        el.classList.add('available');
+        if(canPick) el.classList.add('pickable');
+        el.title = 'Seat '+id+' — available ('+TYPE_LABEL[s.type||'unset']+')';
+      }
+    });
+  }
+
+  function showPhotoHint(el){
+    var hintEl = $('#photoHint');
+    var wrap = $('#photoWrap');
+    if(!hintEl || !wrap) return;
+    hintEl.textContent = el.title;
+    var wr = wrap.getBoundingClientRect(), er = el.getBoundingClientRect();
+    hintEl.style.left = (er.left - wr.left + er.width/2)+'px';
+    hintEl.style.top = (er.top - wr.top)+'px';
+    hintEl.classList.add('show');
+  }
+
+  function onPhotoSeatClick(id){
+    var identity = getIdentity();
+    var t = currentTurnOfficer();
+    var canPick = identity && t && t.name === identity;
+    var s = seats[id];
+    if(!s || s.status!=='available') return;
+    if(!identity){ toast('Choose your name at the top first.'); return; }
+    if(!canPick){
+      if(!t){ toast('The ballot has not started yet.'); }
+      else { toast("It's not your turn yet — Ballot #"+t.ballotNo+' ('+t.name+') is drafting.'); }
+      return;
+    }
+    pendingClaimSeat = id;
+    renderSeatGrid();
+    var gridSeat = $('#seatGrid [data-seat="'+id+'"]');
+    if(gridSeat){ gridSeat.scrollIntoView({behavior:'smooth', block:'center'}); }
+    toast('Confirm seat '+id+' in the seat map below.');
   }
 
   function claimSeat(seatId, name, officer){
