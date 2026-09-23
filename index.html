@@ -435,12 +435,12 @@ Ng Jun Kai</textarea>
   // 1. PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see README.md)
   // =========================================================
   var firebaseConfig = {
-    apiKey: "AIzaSyAsZGh4ZW9m5dZ81t-SkQp2SP2Ddf-vOmk",
-    authDomain: "disg-seat-ballot.firebaseapp.com",
-    projectId: "disg-seat-ballot",
-    storageBucket: "disg-seat-ballot.firebasestorage.app",
-    messagingSenderId: "999132958092",
-    appId: "1:999132958092:web:1b28e03b10c15f0a581aa9",
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
   };
   // =========================================================
 
@@ -832,7 +832,7 @@ Ng Jun Kai</textarea>
       if(existing && existing.status==='taken') return; // never clobber a claimed seat
       var reserved = parseInt(id,10)<=6;
       batch.set(db.collection('seats').doc(id), Object.assign({}, existing||{}, {
-        seatNo:id, status: reserved?'reserved':'available', type: (existing && existing.type) ? existing.type : (SEAT_TYPE_DEFAULT[id]||'unset'),
+        seatNo:id, status: reserved?'reserved':'available', type: (existing && existing.type && existing.type!=='unset') ? existing.type : (SEAT_TYPE_DEFAULT[id] || (existing?existing.type:null) || 'unset'),
         holder:null, holderBallotNo:null, method:null, claimedAt:null
       }));
     });
