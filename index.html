@@ -193,6 +193,13 @@
       <span><i style="background:rgba(31,122,77,.15); box-shadow:inset 0 0 0 1.5px rgba(31,122,77,.55);"></i>Available</span>
       <span><i style="background:rgba(5,7,11,.74);"></i>Taken</span>
     </div>
+    <div class="legend" style="margin-top:10px;">
+      <span><i class="swatch" style="background:var(--t-green)"></i>Green — 1.2m fixed, single monitor</span>
+      <span><i class="swatch" style="background:var(--t-yellow)"></i>Yellow — 1.2m height-adjustable, single monitor</span>
+      <span><i class="swatch" style="background:var(--t-darkyellow)"></i>Dark yellow — 1.4/1.6m height-adjustable, dual monitor</span>
+      <span><i class="swatch" style="background:var(--t-darkgreen)"></i>Dark green — 1.4m fixed, dual monitor</span>
+      <span><i class="swatch" style="background:var(--line)"></i>Unset — type to be confirmed by admin</span>
+    </div>
   </div>
 
   <div class="card">
@@ -347,7 +354,7 @@ Ng Jun Kai</textarea>
 
   <div class="card">
     <h2>6. Bulk seat type import</h2>
-    <div class="hint">Pre-filled with a best-effort reading of the floor plan colours for seats 001&ndash;045 (sampled pixel-by-pixel, not just eyeballed — but still a transcription, not a guarantee). <strong>Spot-check before relying on it</strong>, especially seats 018, 020, 035 (read as dark green) and 031, 033 (read as dark yellow/orange) — these broke the pattern of their neighbours, which is exactly where a misread is most likely. Edit any line below, then apply. One <code>seatNo:type</code> pair per line — valid types: unset, green, yellow, darkyellow, darkgreen.</div>
+    <div class="hint">Confirmed seat types for 001&ndash;045. These are now also applied automatically the first time a seat is seeded, so you only need this if you're correcting a seat after the fact. Edit any line below, then apply. One <code>seatNo:type</code> pair per line — valid types: unset, green, yellow, darkyellow, darkgreen.</div>
     <textarea id="bulkImportInput" style="min-height:220px; font-family:ui-monospace,monospace; font-size:12.5px;">001:green
 002:green
 003:green
@@ -409,6 +416,10 @@ Ng Jun Kai</textarea>
       <button class="btn danger" id="clearRosterBtn">Clear entire roster</button>
       <span class="hint">Deletes every officer record outright (useful after testing with throwaway names). Seats and their types are untouched. Click twice to confirm.</span>
     </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn danger" id="resetTradesBtn">Reset trades</button>
+      <span class="hint">Deletes every trade request (pending, approved or declined) so the Trades tab starts clean. Doesn't touch seats or the roster. Click twice to confirm.</span>
+    </div>
   </div>
 </section>
 
@@ -423,20 +434,27 @@ Ng Jun Kai</textarea>
   // =========================================================
   // 1. PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see README.md)
   // =========================================================
-
   var firebaseConfig = {
-    apiKey: "AIzaSyAsZGh4ZW9m5dZ81t-SkQp2SP2Ddf-vOmk",
-    authDomain: "disg-seat-ballot.firebaseapp.com",
-    projectId: "disg-seat-ballot",
-    storageBucket: "disg-seat-ballot.firebasestorage.app",
-    messagingSenderId: "999132958092",
-    appId: "1:999132958092:web:1b28e03b10c15f0a581aa9",
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
   };
   // =========================================================
 
   var $ = function(s,el){ return (el||document).querySelector(s); };
   var $$ = function(s,el){ return Array.prototype.slice.call((el||document).querySelectorAll(s)); };
   var TYPE_LABEL = {green:'Green', yellow:'Yellow', darkyellow:'Dark yellow', darkgreen:'Dark green', unset:'Unset'};
+  var SEAT_TYPE_DEFAULT = {
+    '01':'green','02':'green','03':'green','04':'green','05':'green','06':'green','07':'green','08':'green',
+    '09':'yellow','10':'yellow','11':'yellow','12':'yellow','13':'yellow','14':'green','15':'green','16':'green',
+    '17':'green','18':'darkgreen','19':'green','20':'darkgreen','21':'green','22':'green','23':'green','24':'green',
+    '25':'yellow','26':'yellow','27':'yellow','28':'yellow','29':'yellow','30':'yellow','31':'darkyellow','32':'yellow',
+    '33':'darkyellow','34':'yellow','35':'darkgreen','36':'green','37':'green','38':'green','39':'green',
+    '40':'yellow','41':'yellow','42':'yellow','43':'yellow','44':'yellow','45':'yellow'
+  };
   var SEAT_BBOX = {"01":{"left":0.642,"top":71.993,"width":2.2,"height":2.858},"02":{"left":0.642,"top":74.85,"width":2.2,"height":2.858},"03":{"left":0.642,"top":77.708,"width":2.2,"height":2.858},"04":{"left":0.642,"top":80.566,"width":2.2,"height":2.858},"05":{"left":0.642,"top":83.423,"width":2.2,"height":2.858},"06":{"left":0.642,"top":86.281,"width":2.2,"height":2.858},"08":{"left":7.424,"top":88.33,"width":1.742,"height":3.636},"07":{"left":7.424,"top":91.966,"width":1.742,"height":3.636},"11":{"left":13.657,"top":88.51,"width":1.742,"height":3.142},"10":{"left":13.657,"top":91.921,"width":1.742,"height":3.052},"09":{"left":13.657,"top":95.242,"width":1.742,"height":3.142},"14":{"left":15.765,"top":88.51,"width":1.742,"height":3.142},"13":{"left":15.765,"top":91.831,"width":1.742,"height":3.142},"12":{"left":15.765,"top":95.242,"width":1.742,"height":3.142},"17":{"left":22.273,"top":88.689,"width":1.833,"height":3.232},"16":{"left":22.273,"top":92.101,"width":1.833,"height":3.142},"15":{"left":22.273,"top":95.512,"width":1.833,"height":3.142},"19":{"left":24.473,"top":88.689,"width":1.742,"height":3.232},"18":{"left":24.473,"top":92.19,"width":1.742,"height":3.321},"21":{"left":30.889,"top":88.869,"width":1.742,"height":3.232},"20":{"left":30.889,"top":92.28,"width":1.742,"height":3.142},"24":{"left":32.997,"top":88.869,"width":1.742,"height":3.232},"23":{"left":32.997,"top":92.28,"width":1.742,"height":3.142},"22":{"left":32.997,"top":95.601,"width":1.742,"height":3.232},"27":{"left":39.23,"top":88.51,"width":1.742,"height":3.142},"26":{"left":39.23,"top":91.831,"width":1.742,"height":3.142},"25":{"left":39.23,"top":95.242,"width":1.742,"height":3.142},"30":{"left":41.338,"top":88.51,"width":1.742,"height":3.142},"29":{"left":41.338,"top":91.831,"width":1.742,"height":3.142},"28":{"left":41.43,"top":95.422,"width":1.742,"height":3.142},"32":{"left":47.663,"top":88.779,"width":1.742,"height":3.052},"31":{"left":47.663,"top":92.19,"width":1.65,"height":3.052},"34":{"left":49.771,"top":88.779,"width":1.742,"height":3.052},"33":{"left":49.863,"top":92.19,"width":1.65,"height":3.052},"36":{"left":71.127,"top":88.689,"width":1.742,"height":3.232},"35":{"left":71.127,"top":92.19,"width":1.742,"height":3.321},"39":{"left":73.236,"top":88.689,"width":1.833,"height":3.232},"38":{"left":73.236,"top":92.101,"width":1.833,"height":3.232},"37":{"left":73.236,"top":95.512,"width":1.833,"height":3.142},"42":{"left":79.835,"top":88.51,"width":1.742,"height":3.142},"41":{"left":79.835,"top":91.831,"width":1.742,"height":3.142},"40":{"left":79.835,"top":95.242,"width":1.742,"height":3.142},"45":{"left":81.943,"top":88.51,"width":1.742,"height":3.142},"44":{"left":81.943,"top":91.921,"width":1.742,"height":3.052},"43":{"left":81.943,"top":95.242,"width":1.742,"height":3.142}}
 ;
 
@@ -814,7 +832,7 @@ Ng Jun Kai</textarea>
       if(existing && existing.status==='taken') return; // never clobber a claimed seat
       var reserved = parseInt(id,10)<=6;
       batch.set(db.collection('seats').doc(id), Object.assign({}, existing||{}, {
-        seatNo:id, status: reserved?'reserved':'available', type: existing?existing.type:'unset',
+        seatNo:id, status: reserved?'reserved':'available', type: (existing && existing.type) ? existing.type : (SEAT_TYPE_DEFAULT[id]||'unset'),
         holder:null, holderBallotNo:null, method:null, claimedAt:null
       }));
     });
@@ -933,6 +951,15 @@ Ng Jun Kai</textarea>
     officers.forEach(function(o){ batch.delete(db.collection('officers').doc(o.id)); });
     batch.commit().then(function(){ toast('Roster cleared ('+officers.length+' officer(s) removed).'); })
       .catch(function(){ toast('Could not clear the roster fully.'); });
+  });
+
+  // ---------- admin: reset trades ----------
+  confirmTwice($('#resetTradesBtn'), function(){
+    if(!trades.length){ toast('There are no trade requests to clear.'); return; }
+    var batch = db.batch();
+    trades.forEach(function(tr){ batch.delete(db.collection('trades').doc(tr.id)); });
+    batch.commit().then(function(){ toast('Trades cleared ('+trades.length+' request(s) removed).'); })
+      .catch(function(){ toast('Could not clear trades fully.'); });
   });
 
   // ---------- admin: reset ----------
